@@ -2,10 +2,15 @@ import React, { useEffect, useState } from "react";
 import "../App.css";
 import LineChartAm from "./LineChartAm";
 import { getSqlConnections } from "../services/api";
+import CanvasJSReact from '@canvasjs/react-charts';
+import { format } from 'date-fns';
 
 function Mysqlconnection() {
+
   const [chartData, setchartData] = useState([]);
-  const [timeStatus, setTimeStatus] = useState("Last7");
+  const [timeStatus, setTimeStatus] = useState("Last7"); 
+  var CanvasJS = CanvasJSReact.CanvasJS;
+  var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
   useEffect(() => {
     getSqlConnections().then((data) => {
@@ -15,20 +20,7 @@ function Mysqlconnection() {
       setchartData(data1);
     });
   }, []);
-  // const dateFormatter = (date) => {
-  //   return moment(date).format("DD/MM/YY HH:mm");
-  // };
 
-  // useEffect(() => {
-  //   fetch("http://192.168.8.205:8010/sqlThreads")
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       var data1 = data.map((ele) => {
-  //         return { ...ele, timestamp: new Date(ele.timestamp) };
-  //       });
-  //       setchartData(data1);
-  //     });
-  // }, []);
 
   var filterchartData = chartData.filter((ele) => {
     var timestamp = new Date(ele.timestamp);
@@ -41,7 +33,41 @@ function Mysqlconnection() {
     return timestamp >= curr;
   });
   filterchartData.reverse();
-  console.log(filterchartData);
+  // console.log(filterchartData);
+  const options = {
+    animationEnabled: true,
+    // exportEnabled: true,
+    theme: "light2", // "light1", "dark1", "dark2"
+    height: 300, // Set chart height
+    axisY: {
+      title: "Number of connections",
+      suffix: "",
+      labelFontSize: 14, // Set font size for Y-axis labels
+      titleFontSize: 16
+    },
+    axisX: {
+      title: "Time",
+      prefix: "",
+      valueFormatString: "MMM DD HH:MM", // Format date
+      intervalType: "hour",
+      labelFontSize: 14, // Set font size for Y-axis labels
+      titleFontSize: 16
+    },
+    data: [{
+      type: "line",
+      // toolTipContent: "{x}: {y} connections",
+      dataPoints:filterchartData.map(item => ({
+        x: item.timestamp,
+        y: item.value,
+        toolTipContent: format(item.timestamp,'yyyy-MM-dd hh:mm')+` : ${item.value} connections` 
+      }))
+      
+    }]
+  }
+
+  const containerProps = {
+    width: "94%", // Full width
+  }
   return (
     <>
       <div className="chart-container" id="driver_sqlChart">
@@ -71,12 +97,13 @@ function Mysqlconnection() {
         </span>
         <br />
         <br />
-        <LineChartAm
+        {/* <LineChartAm
           data={filterchartData}
           id="sqlLineChart"
           ylabel="Sql connections"
           name="SQL Connection"
-        />
+        /> */}
+        <CanvasJSChart options = {options} containerProps={containerProps} />
       </div>
     </>
   );

@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Tablerow from "./Tablerow";
-import { getProjectConfig } from "../services/api";
+import { getProjectConfig, getTimezones } from "../services/api";
 
 function Projectconfigtable() {
   const [state, setState] = useState([]);
+  const [timezones, setTimezones] = useState([]);
   useEffect(() => {
     getProjectConfig().then((res) => {
       setState(res);
     });
+    getTimezones().then((res)=>{
+      setTimezones(res)
+    })
   }, []);
 
   // useEffect(() => {
@@ -46,6 +50,7 @@ function Projectconfigtable() {
             {state.map((data, index) => {
               return (
                 <Tablerow
+                 timezones={timezones}
                   data={data}
                   changeState={setState}
                   state={state}

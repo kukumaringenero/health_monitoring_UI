@@ -10,17 +10,19 @@ import {
   getAllProjectComponentDetails,
   getComponentLagData,
 } from "../services/api";
+import CanvasJSReact from '@canvasjs/react-charts';
+import { format } from 'date-fns';
 
 function Lagging() {
   const [chartData, setchartData] = useState([]);
   const [componentList, setcomponentList] = useState([]);
   const [component, setcomponent] = useState("");
-
   const { state, setState } = useContext(mycontext);
   const { homepageState, setHomepageState } = useContext(mycontext1);
-  console.log(state);
-
   const [timeStatus, setTimeStatus] = useState("Last1");
+  var CanvasJS = CanvasJSReact.CanvasJS;
+  var CanvasJSChart = CanvasJSReact.CanvasJSChart;
+
 
   useEffect(() => {
     getAllProjectComponentDetails(homepageState.module).then((data) => {
@@ -34,29 +36,6 @@ function Lagging() {
     });
     return () => {};
   }, [homepageState.module, state.project]);
-
-  // useEffect(() => {
-  //   var url = `http://192.168.8.205:8010/allProjectComponentDetails/connector`;
-  //   if (homepageState.module != "all")
-  //     url = `http://192.168.8.205:8010/allProjectComponentDetails/${homepageState.module}`;
-
-  //   fetch(url)
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       console.log(data);
-  //       var temp = data.filter((ele) => ele.projectSchema === state.project);
-  //       temp = temp.map((ele) => ele.componentName);
-  //       setcomponentList(temp);
-  //       if (temp.length) {
-  //         setcomponent(temp[0]);
-  //         setHomepageState({ ...homepageState, component: temp[0] });
-  //       }
-  //     });
-  //   return () => {
-  //     // setcomponent("");
-  //     // setchartData([]);
-  //   };
-  // }, [homepageState.module, state.project]);
 
   useEffect(() => {
     if (homepageState.component) {
@@ -75,30 +54,6 @@ function Lagging() {
     return () => {};
   }, [state.project, homepageState.component]);
 
-  // useEffect(() => {
-  //   if (homepageState.component) {
-  //     fetch(
-  //       `http://192.168.8.205:8010/componentLagData/${state.project}/${homepageState.component}`
-  //     )
-  //       .then((res) => res.json())
-  //       .then((data) => {
-  //         var data1 = data.map((ele) => {
-  //           return {
-  //             value: Math.round(ele.value * 100) / 100,
-  //             timestamp: new Date(ele.timestamp),
-  //           };
-  //         });
-  //         setchartData(data1);
-  //       })
-  //       .catch(() => {
-  //         console.log("bad request");
-  //       });
-  //   }
-  //   return () => {
-  //     // setchartData([]);
-  //     // setcomponent("");
-  //   };
-  // }, [state.project, homepageState.component]);
 
   var filterchartData = chartData.filter((ele) => {
     var timestamp = new Date(ele.timestamp);
@@ -117,6 +72,78 @@ function Lagging() {
     curr.setDate(curr.getDate() - 1);
     return timestamp >= curr;
   });
+
+  const options = {
+    animationEnabled: true,
+    // exportEnabled: true,
+    theme: "light2", // "light1", "dark1", "dark2"
+    height: 200, // Set chart height
+    axisY: {
+      title: "Lag (Hours)",
+      suffix: "",
+      labelFontSize: 14, // Set font size for Y-axis labels
+      titleFontSize: 16
+    },
+    axisX: {
+      title: "Time",
+      prefix: "",
+      valueFormatString: "MMM DD HH:MM", // Format date
+      intervalType: "hour",
+      labelFontSize: 14, // Set font size for Y-axis labels
+      titleFontSize: 16
+    },
+    data: [{
+      type: "line",
+      // toolTipContent: "{x}: {y} connections",
+      dataPoints:filterchartData.map(item => ({
+        x: item.timestamp,
+        y: item.value,
+        toolTipContent: format(item.timestamp,'yyyy-MM-dd hh:mm')+` : ${item.value} hours` 
+      }))
+      
+    }]
+  }
+  const options_bar_graph = {
+    animationEnabled: true,
+    // exportEnabled: true,
+    theme: "light2", // "light1", "dark1", "dark2"
+    height: 200, // Set chart height
+    axisY: {
+      title: "Lag (Hours)",
+      suffix: "",
+      labelFontSize: 14, // Set font size for Y-axis labels
+      titleFontSize: 16,
+      minimum: 0,
+      maximum: 1,
+      interval:1
+  
+    },
+    axisX: {
+      title: "Time",
+      prefix: "",
+      valueFormatString: "MMM DD HH:MM", // Format date
+      intervalType: "hour",
+      labelFontSize: 14, // Set font size for Y-axis labels
+      titleFontSize: 16
+    },
+    data: [{
+      type: "column",
+      // toolTipContent: "{x}: {y} connections",
+      dataPoints:filteredBarData.map(item => ({
+        x: item.timestamp,
+        y:1,
+        toolTipContent: format(item.timestamp,'yyyy-MM-dd hh:mm')
+        ,color:item.value==0?"#e19090":"#8dae8a"
+      }))
+      
+    }]
+  }
+
+  const containerProps = {
+    width: "94%", // Full width
+  }
+
+
 
   // filterchartData.reverse();
   return filterchartData.length == 0 || filteredBarData == 0 ? (
@@ -163,12 +190,14 @@ function Lagging() {
               </span>
               <br />
               <br />
-              <LineChartAm
+              {/* <LineChartAm
                 data={filterchartData}
                 id="componenLagTrend"
                 ylabel="Lag (hours)"
                 name="Lag (hours)"
-              />
+              /> */}
+           <CanvasJSChart options = {options} containerProps={containerProps} />
+
             </div>
             <div className="chart-container1" style={{ height: "17.5em" }}>
               <br />
@@ -184,7 +213,8 @@ function Lagging() {
                 <p id="rectangle_two"></p>
                 &nbsp;Off&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
               </span>
-              <Offstatus barData={filteredBarData} />
+              {/* <Offstatus barData={filteredBarData} /> */}
+              <CanvasJSChart options = {options_bar_graph} containerProps={containerProps} />
             </div>
           </div>
         )}{" "}

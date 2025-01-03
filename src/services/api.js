@@ -1,7 +1,37 @@
  export const BASE_URL = "http://192.168.8.205:8091/api";
 //  export const BASE_URL = "http://localhost:8080/api";
 
-export async function getLastUpdatedTime() {
+
+
+
+ export async function getTimezones() {
+  try {
+    let url = `${BASE_URL}/timezones`;
+    return await fetch(url).then((response) => response.json());
+  } catch (error) {
+    return;
+  }
+} 
+ export async function putTimeZone(tz,type,project) {
+  try {
+    let url = `${BASE_URL}/editTimezone`;
+    const response = await fetch(url, {
+      method: "PUT",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({timezone:tz,type,project}),
+    });
+
+    return response.text();
+  } catch (error) {
+    return;
+  }
+} 
+
+ export async function getLastUpdatedTime() {
   try {
     let url = `${BASE_URL}/lastUpdatedTime`;
     return await fetch(url).then((response) => response.text());
@@ -9,6 +39,7 @@ export async function getLastUpdatedTime() {
     return;
   }
 }
+ 
 
 export async function getProjectDetails(project, module) {
   try {

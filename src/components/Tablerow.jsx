@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useContext } from "react";
 import { themeContext } from "../context/ThemeContext";
-import {BASE_URL} from '../services/api'
+import {BASE_URL, putTimeZone} from '../services/api'
 
-function Tablerow({ data, changeState, no }) {
+function Tablerow({ timezones,data, changeState, no }) {
   /*
        Change the base url for different server 
   */ const { theme, setTheme } = useContext(themeContext);
@@ -74,7 +74,15 @@ function Tablerow({ data, changeState, no }) {
       console.log(data);
     });
   };
+const handelTimeChange=(e,type,project)=>{
+  let tzSelected=e.target.value
+  putTimeZone(tzSelected,type,project).then((res)=>{
+    console.log(res)
+  }).catch((err)=>{
+    console.log(err)
+  })
 
+}
   return (
     <tr
       style={{
@@ -93,9 +101,25 @@ function Tablerow({ data, changeState, no }) {
 
       <td style={{ textAlign: "left" }}>{data.projectDescription}</td>
 
-      <td>{data.timezoneSource}</td>
+      <td>
+        <select name="source_timezone" id="source_timezone" onChange={(e)=>{
+        handelTimeChange(e,"source",data.project)
+      }}>
+           { timezones.map((tz)=>{
+             return <option value={tz} selected={tz==data.timezoneSource}  >{tz}</option>
+           })}
+        
+        </select></td>
 
-      <td>{data.timezoneDestination}</td>
+        <td>
+        <select name="source_timezone" id="source_timezone" onChange={(e)=>{
+        handelTimeChange(e,"destination",data.project)
+      }}>
+           { timezones.map((tz)=>{
+             return <option value={tz} selected={tz==data.timezoneDestination}  >{tz}</option>
+           })}
+        
+        </select></td>
 
       <td>
         <input
